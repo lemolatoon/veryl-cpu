@@ -1,0 +1,16 @@
+// embed system verilog
+embed (inline) sv{{{
+    package svutil;
+        import "DPI-C" context function string get_env_value(input string key);
+        function string get_env(string name);
+            return get_env_value(name);
+        endfunction
+    endpackage
+}}}
+
+package util {
+    function get_env(name: input string) -> string {
+        // Call the function defined in the embedded SystemVerilog code
+        return $sv::svutil::get_env(name);
+    }
+}

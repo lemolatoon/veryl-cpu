@@ -1,0 +1,52 @@
+module memory::<DATA_WIDTH: const, ADDR_WIDTH: const> #(
+    // Whether the file path is an environment variable
+    param FILEPATH_IS_ENV: logic = 0,
+    // The file path to initialize the memory, or the environment variable name
+    param FILEPATH: string = "",
+) (
+    clk   : input   clock                                     ,
+    rst   : input   reset                                     ,
+    membus: modport membus_if::<DATA_WIDTH, ADDR_WIDTH>::slave,
+) {
+    // For one memory address, the data is DATA_WIDTH bits wide
+    type DataType = logic<DATA_WIDTH>;
+
+    // The memory has 2 ** ADDR_WIDTH addresses
+    var mem: DataType [2 ** ADDR_WIDTH];
+
+    initial {
+        // initialize the memory: `mem` with the data from the file at `FILEPATH`
+        if FILEPATH != "" {
+            if FILEPATH_IS_ENV {
+                $readmemh(util::get_env(FILEPATH), mem);
+            } else {
+                $readmemh(FILEPATH, mem);
+            }
+        }
+    }
+
+    // blocking assignement: updated when the right hand side changes.
+    always_comb {
+        membus.ready = 1;
+    }
+
+    // non-blocking assignement: At the timing of the clock or reset signal, the right hand side is evaluated and the left hand side is updated.
+    always_ff {
+        if_reset {
+            membus.rvalid = 0;
+            membus.rdata  = 0;
+        } else {
+            // Every clock cycle
+            membus.rvalid = membus.valid;
+            // When `read`, `membus.valid` is 1 and `membus.wen` is 0.
+            // Read the memory address `membus.addr` to `membus.rdata`.
+            membus.rdata = mem[membus.addr[ADDR_WIDTH - 1:0]];
+            if membus.valid && membus.wen {
+                // When `write`, `membus.valid` is 1 and `membus.wen` is 1.
+                // Write `membus.wdata` to the memory address `membus.addr`.
+                mem[membus.addr[ADDR_WIDTH - 1:0]] = membus.wdata;
+            }
+            // Next cycle, `membus.rvalid` will be 1, because `membus.valid` is 1 now.
+        }
+    }
+}

@@ -1,0 +1,18 @@
+// RISC-V Execution Environment Interface (EEI)
+package eei {
+    // XLEN: The width of the integer registers
+    const XLEN: u32 = 32;
+    // ILEN: The max width of the instruction
+    const ILEN: u32 = 32;
+
+    type UIntX  = logic<XLEN>;
+    type UInt32 = logic<32>  ;
+    type UInt64 = logic<64>  ;
+    type Inst   = logic<ILEN>;
+    type Addr   = logic<XLEN>;
+
+    // Memory data width
+    const MEM_DATA_WIDTH: u32 = 32;
+    // Memory address width
+    const MEM_ADDR_WIDTH: u32 = 16;
+}
