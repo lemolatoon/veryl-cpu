@@ -12,6 +12,7 @@ module memory::<DATA_WIDTH: const, ADDR_WIDTH: const> #(
     type DataType = logic<DATA_WIDTH>;
 
     // The memory has 2 ** ADDR_WIDTH addresses
+    #[allow(missing_reset_statement)]
     var mem: DataType [2 ** ADDR_WIDTH];
 
     initial {

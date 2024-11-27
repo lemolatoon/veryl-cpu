@@ -4,15 +4,46 @@ module top (
     clk: input clock,
     rst: input reset,
 ) {
+    /// While the `core` module requires the address of the 1 byte width, the `memory` module requires the address of the 4 byte width.
+    /// This function converts the 1 byte width address to the 4 byte width address.
+    function addr_to_memaddr (
+        addr: input logic<XLEN>          ,
+    ) -> logic<MEM_ADDR_WIDTH> {
+        return addr[$clog2(MEM_DATA_WIDTH / 8)+:MEM_ADDR_WIDTH]; // == addr[17:2]
+    }
+
     // Instantiate the `membus_if` inteface with the specified data and address width defined in `eei`
     inst membus: membus_if::<MEM_DATA_WIDTH, MEM_ADDR_WIDTH>;
+    // Instantiate the `memory` module for `core` module
+    inst membus_core: membus_if::<ILEN, XLEN>;
 
+    // connect the `membus` interface to the `membus_core` interface
+    always_comb {
+        membus.valid      = membus_core.valid;
+        membus_core.ready = membus.ready;
+        // Convert the 1 byte width address to the 4 byte width(= data width) address
+        membus.addr = addr_to_memaddr(membus_core.addr);
+        // Never perform `write` for the instruction fetch
+        membus.wen         = 0;
+        membus.wdata       = 'x;
+        membus_core.rvalid = membus.rvalid;
+        membus_core.rdata  = membus.rdata;
+    }
+
+    // Instantiate the `core` module
+    inst c: core (
+        clk                ,
+        rst                ,
+        membus: membus_core,
+    );
+
+    // Instantiate the `memory` module
     inst mem: memory::<MEM_DATA_WIDTH, MEM_ADDR_WIDTH> #(
-        FILEPATH_IS_ENV: 1,
-        FILEPATH: "MEMORY_FILE_PATH",
+        FILEPATH_IS_ENV: 1                 ,
+        FILEPATH       : "MEMORY_FILE_PATH",
     ) (
-        clk,
-        rst,
-        membus,
+        clk     ,
+        rst     ,
+        membus  ,
     );
 }

@@ -9,7 +9,9 @@ embed (inline) sv{{{
 }}}
 
 package util {
-    function get_env(name: input string) -> string {
+    function get_env (
+        name: input string,
+    ) -> string {
         // Call the function defined in the embedded SystemVerilog code
         return $sv::svutil::get_env(name);
     }
