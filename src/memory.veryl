@@ -8,6 +8,9 @@ module memory::<DATA_WIDTH: const, ADDR_WIDTH: const> #(
     rst   : input   reset                                     ,
     membus: modport membus_if::<DATA_WIDTH, ADDR_WIDTH>::slave,
 ) {
+    import eei::*;
+    import util::*;
+
     // For one memory address, the data is DATA_WIDTH bits wide
     type DataType = logic<DATA_WIDTH>;
 

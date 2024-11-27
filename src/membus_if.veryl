@@ -1,4 +1,5 @@
 interface membus_if::<DATA_WIDTH: const, ADDR_WIDTH: const> {
+    import eei::*;
     var valid : logic            ;
     var ready : logic            ;
     var addr  : logic<ADDR_WIDTH>;

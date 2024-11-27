@@ -1,0 +1,3 @@
+-I/usr/share/verilator/include
+-I/usr/share/verilator/include/vltstd
+-Iobj_dir
